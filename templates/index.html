@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malaria Detection System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --dark: #2d3436;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+        body {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            width: 100%;
+            max-width: 600px;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        h1 { color: var(--dark); margin-bottom: 10px; font-size: 1.8rem; }
+        p.subtitle { color: #636e72; margin-bottom: 30px; }
+
+        .upload-area {
+            border: 2px dashed #d1d8e0;
+            padding: 40px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+            position: relative;
+        }
+
+        .upload-area:hover { border-color: var(--primary); background: #f1f2f6; }
+
+        #imagePreview {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 25px;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover { transform: translateY(-2px); background: var(--secondary); }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        #resultSection {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 15px;
+            display: none;
+        }
+
+        .result-card {
+            padding: 20px;
+            border-radius: 12px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .Uninfected { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .Parasitized { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .loader {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1><i class="fas fa-microscope"></i> Malaria Detector</h1>
+    <p class="subtitle">Upload a blood smear image for instant AI analysis</p>
+
+    <form id="uploadForm">
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <i class="fas fa-cloud-upload-alt fa-3x" style="color: var(--primary); margin-bottom: 10px;"></i>
+            <p id="uploadText">Click or Drag & Drop Image Here</p>
+            <input type="file" id="fileInput" name="file" hidden accept="image/*">
+            <img id="imagePreview" alt="Preview">
+        </div>
+
+        <div class="loader" id="loader"></div>
+        <button type="submit" class="btn" id="predictBtn" disabled>Analyze Image</button>
+    </form>
+
+    <div id="resultSection">
+        <div id="resultContent" class="result-card">
+            <h2 id="predictionText"></h2>
+            <p id="confidenceText" style="margin-top: 5px; font-weight: bold;"></p>
+            <small id="timestamp" style="display: block; margin-top: 10px; opacity: 0.7;"></small>
+        </div>
+    </div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const uploadText = document.getElementById('uploadText');
+    const predictBtn = document.getElementById('predictBtn');
+    const uploadForm = document.getElementById('uploadForm');
+    const resultSection = document.getElementById('resultSection');
+    const loader = document.getElementById('loader');
+
+    // Handle Image Preview
+    fileInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = 'block';
+                uploadText.style.display = 'none';
+                predictBtn.disabled = false;
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Handle Form Submission
+    uploadForm.onsubmit = async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        // UI Feedback
+        loader.style.display = 'block';
+        predictBtn.disabled = true;
+        resultSection.style.display = 'none';
+
+        try {
+            const response = await fetch('/predict', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            loader.style.display = 'none';
+            predictBtn.disabled = false;
+
+            if (data.success) {
+                resultSection.style.display = 'block';
+                const content = document.getElementById('resultContent');
+                content.className = `result-card ${data.prediction}`;
+                
+                document.getElementById('predictionText').innerText = data.prediction;
+                document.getElementById('confidenceText').innerText = `Confidence: ${data.confidence}%`;
+                document.getElementById('timestamp').innerText = `Analyzed on: ${data.timestamp}`;
+            } else {
+                alert("Error: " + data.error);
+            }
+        } catch (error) {
+            loader.style.display = 'none';
+            predictBtn.disabled = false;
+            alert("Server connection failed.");
+        }
+    };
+</script>
+
+</body>
+</html>
