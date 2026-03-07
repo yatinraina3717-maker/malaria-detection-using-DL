@@ -11,7 +11,7 @@ parasitized_path = r'C:\Users\mohit\Desktop\SW\cell_images\Parasitized'
 uninfected_path = r'C:\Users\mohit\Desktop\SW\cell_images\Uninfected'
 
 # New subset folder
-subset_base_path = r'C:\Users\mohit\Desktop\SW\cell_images_subset'
+subset_base_path = r'C:\Users\mohit\malaria-detection-using-DL\subset_dataset'
 subset_parasitized = os.path.join(subset_base_path, 'Parasitized')
 subset_uninfected = os.path.join(subset_base_path, 'Uninfected')
 
