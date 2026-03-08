@@ -38,7 +38,7 @@ if MODEL_ERROR is None:
             if h5_files:
                 MODEL_PATH = os.path.join(current_dir, h5_files[0])
                 print(f"✓ Found alternative: {h5_files[0]}")
-                model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+                model = tf.keras.models.load_model(MODEL_PATH, compile=False,safe_mode=False,custom_objects=None)
                 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
                 print(f"✓ Loaded! Input: {model.input_shape}, Output: {model.output_shape}")
             else:
