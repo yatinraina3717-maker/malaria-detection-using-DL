@@ -1,7 +1,0 @@
-services:
-  - type: web
-    name: malaria-detection
-    env: python
-    pythonVersion: "3.11"
-    buildCommand: pip install --no-cache-dir -r requirements.txt
-    startCommand: gunicorn app:app
