@@ -1,12 +1,12 @@
 import pandas as pd
 import os
-import model_training  # This will trigger the training in model_training.py
+from model_training import results  # This will trigger the training in model_training.py
 
 
 def run_comparison():
     # Retrieve the results dictionary from your training script
     # This assumes model_training.py has a 'results' dictionary
-    results = model_training.results
+    result = results
 
     print("\n" + "=" * 50)
     print("MODEL COMPARISON")
@@ -14,9 +14,9 @@ def run_comparison():
 
     # Create the DataFrame for comparison
     comparison_df = pd.DataFrame({
-        'Model': list(results.keys()),
-        'Validation Accuracy': [results[m]['val_accuracy'] for m in results.keys()],
-        'ROC AUC': [results[m]['roc_auc'] for m in results.keys()]
+        'Model': list(result.keys()),
+        'Validation Accuracy': [result[m]['val_accuracy'] for m in result.keys()],
+        'ROC AUC': [result[m]['roc_auc'] for m in result.keys()]
     })
 
     print("\n", comparison_df)
@@ -26,8 +26,8 @@ def run_comparison():
         best_model_name = comparison_df.loc[comparison_df['Validation Accuracy'].idxmax(), 'Model']
 
         print(f"\n🏆 Best Model: {best_model_name}")
-        print(f"Validation Accuracy: {results[best_model_name]['val_accuracy']:.4f}")
-        print(f"ROC AUC: {results[best_model_name]['roc_auc']:.4f}")
+        print(f"Validation Accuracy: {result[best_model_name]['val_accuracy']:.4f}")
+        print(f"ROC AUC: {result[best_model_name]['roc_auc']:.4f}")
 
         # Path of the best model generated during training
         best_model_filename = f"malaria_{best_model_name.lower()}.h5"

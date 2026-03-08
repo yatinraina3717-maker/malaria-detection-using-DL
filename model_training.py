@@ -14,8 +14,7 @@ class Config:
     BATCH_SIZE = 32
     EPOCHS = 10
     LEARNING_RATE = 0.001
-    DATASET_PATH = r"D:\Amrita School of AI\SkillWallet\Maleria_Project\subset_dataset"
-
+    DATASET_PATH = r"\subset_dataset"
 
 config = Config()
 
