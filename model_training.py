@@ -12,9 +12,9 @@ from model_building import create_custom_cnn, create_transfer_model
 class Config:
     IMG_SIZE = (128, 128, 3)
     BATCH_SIZE = 32
-    EPOCHS = 10
+    EPOCHS = 50
     LEARNING_RATE = 0.001
-    DATASET_PATH = r"\subset_dataset"
+    DATASET_PATH = os.path.join(os.path.dirname(__file__), "subset_dataset")
 
 config = Config()
 
@@ -80,7 +80,7 @@ def plot_history(history, model_name):
 
 
 def train_model(model, name, train_data, val_data, epochs, lr):
-    print(f"\n🚀 Training Started for: {name}")
+    print(f"\nTraining Started for: {name}")
 
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=lr),

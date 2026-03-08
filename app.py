@@ -8,7 +8,8 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 model = None
 MODEL_ERROR = None
-MODEL_PATH = None
+
+MODEL_PATH = r"malaria_model.h5"
 CLASS_NAMES = ['Parasitized', 'Uninfected']
 
 print("\n" + "="*70)
@@ -18,29 +19,34 @@ print("="*70)
 try:
     import tensorflow as tf
     from PIL import Image
-    print("✓ TensorFlow imported")
+    print("✓ TensorFlow and PIL imported successfully")
 except Exception as e:
     MODEL_ERROR = f"Import failed: {e}"
     print(f"X {MODEL_ERROR}")
 
 if MODEL_ERROR is None:
-    current_dir = os.getcwd()
-    print(f"✓ Directory: {current_dir}")
-
     try:
-        h5_files = [f for f in os.listdir(current_dir) if f.endswith('.h5')]
-        if h5_files:
-            MODEL_PATH = os.path.join(current_dir, h5_files[0])
-            print(f"✓ Found: {h5_files[0]}")
+        if os.path.exists(MODEL_PATH):
             model = tf.keras.models.load_model(MODEL_PATH, compile=False)
-            model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-            print(f"✓ Loaded! Input: {model.input_shape}, Output: {model.output_shape}")
+            model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+            print(f"✓ Model Loaded Successfully from {MODEL_PATH}")
+            print(f"✓ Input: {model.input_shape}, Output: {model.output_shape}")
         else:
-            MODEL_ERROR = "No .h5 file found"
-            print(f"X {MODEL_ERROR}")
+            current_dir = os.getcwd()
+            print(f"✓ Primary path not found. Directory: {current_dir}")
+            h5_files = [f for f in os.listdir(current_dir) if f.endswith('.h5')]
+            if h5_files:
+                MODEL_PATH = os.path.join(current_dir, h5_files[0])
+                print(f"✓ Found alternative: {h5_files[0]}")
+                model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+                model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+                print(f"✓ Loaded! Input: {model.input_shape}, Output: {model.output_shape}")
+            else:
+                MODEL_ERROR = "No .h5 file found"
+                print(f"X {MODEL_ERROR}")
     except Exception as e:
         MODEL_ERROR = str(e)
-        print(f"X {MODEL_ERROR}")
+        print(f"X Model Loading Error: {MODEL_ERROR}")
 
 def prepare_image(image_file):
     if model is None:
@@ -121,17 +127,12 @@ def predict():
         prob = float(prediction[0][0])
         print(f"Probability value: {prob}")
 
-        # Determine class based on threshold
-        if prob > 0.5:
-            pred_class = 1 # Uninfected
-            confidence = prob * 100
-        else:
-            pred_class = 0 # Parasitized
-            confidence = (1 - prob) * 100
-
-        result = CLASS_NAMES[pred_class]
-        parasitized_prob = (1 - prob) * 100
-        uninfected_prob = prob * 100
+        # Determine class
+        pred_class       = int(np.argmax(prediction[0]))
+        confidence       = float(np.max(prediction[0])) * 100
+        parasitized_prob = float(prediction[0][0]) * 100
+        uninfected_prob  = float(prediction[0][1]) * 100
+        result           = CLASS_NAMES[pred_class]
 
         print(f"Result: {result}, Confidence: {confidence:.2f}%")
 
