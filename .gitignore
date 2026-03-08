@@ -205,12 +205,3 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
-
-# Dataset folders
-dataset/
-subset_dataset/
-
-# Trained model files
-models/
-*.h5
-*.keras
